@@ -1,4 +1,12 @@
-import { Box, SimpleGrid } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  NumberInput,
+  NumberInputField,
+} from "@chakra-ui/react";
 import {
   Data,
   GoogleMap,
@@ -6,6 +14,12 @@ import {
   useJsApiLoader,
 } from "@react-google-maps/api";
 import React, { useState } from "react";
+import baseIcon from "../assets/lighthouse.png";
+
+const baseLocation = {
+  lat: -15.603703248931666,
+  lng: -56.1341732590274,
+};
 
 function HouseForm() {
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
@@ -14,21 +28,34 @@ function HouseForm() {
   });
 
   return (
-    <SimpleGrid minChildWidth="200px" spacing="10px">
-      <Box bg="twitter.100 ">
-          teste
+    <>
+      <Box padding={2}>
+        <FormControl>
+          <FormLabel fontWeight="bold">Santa Isabel, Cuiaba MT</FormLabel>
+        </FormControl>
+        <FormControl isRequired>
+          <FormLabel fontWeight="bold">Rua</FormLabel>
+          <Input variant="filled" name="rua" placeholder="Nome da rua" />
+        </FormControl>
+        <FormControl isRequired>
+          <FormLabel fontWeight="bold">Número</FormLabel>
+          <NumberInput variant="filled">
+            <NumberInputField w="8rem" placeholder="Nº da casa" />
+          </NumberInput>
+        </FormControl>
       </Box>
       {isLoaded && (
-        <Box bg="tomato">
+        <Box minHeight="200px" h="100%">
+          <FormLabel fontWeight="bold">Geolocalização</FormLabel>
           <GoogleMap
-            mapContainerStyle={{ minWidth: "200px", height: "90vh" }}
-            zoom={15}
-            center={
-              pin || {
-                lat: -15.614044290060665,
-                lng: -56.116292077536755,
-              }
-            }
+            mapContainerStyle={{
+              minWidth: "200px",
+              width: "100%",
+              minHeight: "200px",
+              height: "100%",
+            }}
+            zoom={16}
+            center={pin || baseLocation}
           >
             {pin && (
               <Marker
@@ -44,9 +71,14 @@ function HouseForm() {
                   console.log("coords", coords);
                   setPin(coords);
                 }}
-                label="Lugar top"
               />
             )}
+            <Marker
+              icon={baseIcon}
+              cursor="pointer"
+              position={baseLocation}
+              title="Base: Ibpaz Santa Isabel"
+            />
             <Data
               onAddFeature={console.log}
               options={{
@@ -66,7 +98,11 @@ function HouseForm() {
           </GoogleMap>
         </Box>
       )}
-    </SimpleGrid>
+      <hr />
+      <Button leftIcon={<>📨</>} marginTop={4} w="100%">
+        Registrar correspondência
+      </Button>
+    </>
   );
 }
 
