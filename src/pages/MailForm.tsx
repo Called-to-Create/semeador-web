@@ -15,6 +15,7 @@ import {
   Data,
   GoogleMap,
   Marker,
+  Polygon,
   useJsApiLoader,
 } from "@react-google-maps/api";
 import React, { useState } from "react";
@@ -27,7 +28,33 @@ const baseLocation = {
   lng: -56.1341732590274,
 };
 
-function HouseForm() {
+const areaOptions = {
+  fillColor: "darkgreen",
+  fillOpacity: 0.3,
+  strokeColor: "darkgreen",
+  strokeOpacity: 0.4,
+  strokeWeight: 2,
+  clickable: false,
+  draggable: false,
+  editable: false,
+  geodesic: false,
+  zIndex: 1,
+};
+
+const paths = [
+  { lat: -15.604150500153096, lng: -56.133934551333894 },
+  { lat: -15.604274500966588, lng: -56.13520323619794 },
+  { lat: -15.599068985689124, lng: -56.137399965381135 },
+  { lat: -15.598619470979916, lng: -56.1363485394473 },
+];
+
+type Props = {
+  user: string;
+  projectId: string;
+};
+
+// TODO: componentizar
+function HouseForm(props: Props) {
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
   const [lastReference, setLastReference] = useState(baseLocation);
 
@@ -61,18 +88,42 @@ function HouseForm() {
     setAddress(null);
   };
 
-  const submit = () => {
+  const submit = async () => {
     const house = { ...address, number, obs, location: pin };
-
     console.log("Submit: \n", JSON.stringify(house, null, 4));
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/places/mailing`,
+        {
+          method: "POST",
+          headers: new Headers({
+            "Content-Type": "application/json",
+            user: props.user,
+            project_id: props.projectId,
+          }),
+          body: JSON.stringify(house),
+        }
+      );
 
-    clearState();
-    toast({
-      title: "A semente foi lançada",
-      description: "continue semeando",
-      status: "success",
-      duration: 3000,
-    });
+      if (response.status !== 201) {
+        throw new Error(`${response.status}:${response.statusText}`);
+      }
+
+      clearState();
+      toast({
+        title: "A semente foi lançada",
+        description: "continue semeando",
+        status: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: "Ops",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+      });
+    }
   };
 
   return (
@@ -94,6 +145,7 @@ function HouseForm() {
               zoom={16}
               center={pin || lastReference}
             >
+              <Polygon options={areaOptions} paths={paths} />
               {pin && (
                 <Marker
                   label="📩"

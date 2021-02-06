@@ -7,7 +7,7 @@ function Home() {
     <Box padding={4} width="100%">
       <Heading as="h1">🌱 SEMEADOR APP</Heading>
       <Text bg="orange.100" align="center">Projeto bom vizinho</Text>
-      <MailForm />
+      <MailForm user="juninho" projectId="601d2c30459beb694efe67dd" />
     </Box>
   );
 }
