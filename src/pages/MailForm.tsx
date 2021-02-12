@@ -7,6 +7,7 @@ import {
   Input,
   NumberInput,
   NumberInputField,
+  Skeleton,
   Text,
   useToast,
   VStack,
@@ -61,6 +62,7 @@ function HouseForm(props: Props) {
   const [address, setAddress] = useState<Address | null>();
   const [number, setNumber] = useState<number | null>(null);
   const [obs, setObs] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY || "",
@@ -86,12 +88,14 @@ function HouseForm(props: Props) {
     setPin(null);
     setNumber(null);
     setAddress(null);
+    setObs("");
   };
 
   const submit = async () => {
     const house = { ...address, number, obs, location: pin };
     console.log("Submit: \n", JSON.stringify(house, null, 4));
     try {
+      setIsLoading(true);
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/places/mailing`,
         {
@@ -123,13 +127,15 @@ function HouseForm(props: Props) {
         status: "error",
         duration: 3000,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <>
       {isLoaded && (
-        <Box minHeight="200px" maxHeight="500px" h="100%">
+        <Box minHeight="250px" maxHeight="500px" h="100%">
           <FormControl isRequired={pin === null}>
             <FormLabel fontWeight="bold">Geolocalização</FormLabel>
             <Text as="small" textColor="gray">
@@ -139,7 +145,7 @@ function HouseForm(props: Props) {
               mapContainerStyle={{
                 minWidth: "200px",
                 width: "100%",
-                minHeight: "200px",
+                minHeight: "250px",
                 height: pin ? "100%" : "70vh",
               }}
               zoom={16}
@@ -183,54 +189,67 @@ function HouseForm(props: Props) {
       )}
       {address && (
         <VStack marginTop="2rem" padding={4} shadow="md" align="stretch">
-          <Box>
-            <strong>Cidade:</strong>{" "}
-            <Badge>
-              {address.city}, {address.state} {address.country}
-            </Badge>
-          </Box>
-          <Box>
-            <strong>Bairro:</strong> <Badge>{address.suburb}</Badge>
-          </Box>
-          <Box>
-            <strong>Rua:</strong> <Badge>{address.road}</Badge>
-          </Box>
-          <Box>
-            <strong>CEP:</strong> <Badge>{address.postcode}</Badge>
-          </Box>
-          <Box>
-            <FormControl>
-              <FormLabel fontWeight="bold">Número</FormLabel>
-              <NumberInput variant="filled">
-                <NumberInputField
-                  value={number || 0}
-                  placeholder="Nº da casa"
-                  onChange={handleChangeNumber}
-                />
-              </NumberInput>
-            </FormControl>
-            <FormControl>
-              <FormLabel fontWeight="bold">Observação</FormLabel>
-              <Input
-                value={obs}
-                onChange={handleChangeObs}
-                variant="filled"
-                placeholder="Exemplo: cor da casa"
-              />
-            </FormControl>
-          </Box>
-          <Button marginTop={4} colorScheme="red" onClick={clearState}>
-            CANCELAR
-          </Button>
-          <Button
-            disabled={!pin || !address}
-            leftIcon={<>📨</>}
-            marginTop={4}
-            w="100%"
-            onClick={submit}
-          >
-            REGISTRAR CORRESPONDÊNCIA
-          </Button>
+          {isLoading ? (
+            <>
+              <Skeleton height="35px" />
+              <Skeleton height="35px" />
+              <Skeleton height="35px" />
+              <Skeleton height="35px" />
+              <Skeleton height="35px" />
+            </>
+          ) : (
+            <>
+              <Box>
+                <strong>Cidade:</strong>{" "}
+                <Badge>
+                  {address.city}, {address.state} {address.country}
+                </Badge>
+              </Box>
+              <Box>
+                <strong>Bairro:</strong> <Badge>{address.suburb}</Badge>
+              </Box>
+              <Box>
+                <strong>Rua:</strong> <Badge>{address.road}</Badge>
+              </Box>
+              <Box>
+                <strong>CEP:</strong> <Badge>{address.postcode}</Badge>
+              </Box>
+              <Box>
+                <FormControl>
+                  <FormLabel fontWeight="bold">Número</FormLabel>
+                  <NumberInput variant="filled">
+                    <NumberInputField
+                      value={number || 0}
+                      placeholder="Nº da casa"
+                      onChange={handleChangeNumber}
+                    />
+                  </NumberInput>
+                </FormControl>
+                <FormControl>
+                  <FormLabel fontWeight="bold">Observação</FormLabel>
+                  <Input
+                    value={obs}
+                    onChange={handleChangeObs}
+                    variant="filled"
+                    placeholder="Exemplo: cor da casa"
+                  />
+                </FormControl>
+              </Box>
+              <Button marginTop={4} colorScheme="red" onClick={clearState}>
+                CANCELAR
+              </Button>
+              <Button
+                colorScheme="messenger"
+                disabled={!pin || !address}
+                leftIcon={<>📨</>}
+                marginTop={4}
+                w="100%"
+                onClick={submit}
+              >
+                REGISTRAR CORRESPONDÊNCIA
+              </Button>
+            </>
+          )}
         </VStack>
       )}
     </>
