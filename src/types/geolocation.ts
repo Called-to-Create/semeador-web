@@ -9,3 +9,5 @@ export type Address = {
   country: string;
   country_code: string;
 };
+
+export type AppGeolocation = { lat: number; lng: number };

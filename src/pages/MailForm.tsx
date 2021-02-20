@@ -21,8 +21,9 @@ import {
 } from "@react-google-maps/api";
 import React, { useState } from "react";
 import baseIcon from "../assets/lighthouse.png";
+import mailBox from "../assets/mailbox.png";
 import { getReverseGeocoding } from "../services/geoCoding";
-import { Address } from "../types/geolocation";
+import { Address, AppGeolocation } from "../types/geolocation";
 
 const baseLocation = {
   lat: -15.603703248931666,
@@ -43,10 +44,10 @@ const areaOptions = {
 };
 
 const paths = [
-  { lat: -15.604150500153096, lng: -56.133934551333894 },
-  { lat: -15.604274500966588, lng: -56.13520323619794 },
-  { lat: -15.599068985689124, lng: -56.137399965381135 },
-  { lat: -15.598619470979916, lng: -56.1363485394473 },
+  { lat: -15.604147729365112, lng: -56.13393439339357 },
+  { lat: -15.604003061652685, lng: -56.13267643736558 },
+  { lat: -15.598118099310096, lng: -56.13521380709367 },
+  { lat: -15.598602606835296, lng: -56.13634180319821 },
 ];
 
 type Props = {
@@ -56,8 +57,10 @@ type Props = {
 
 // TODO: componentizar
 function HouseForm(props: Props) {
-  const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
-  const [lastReference, setLastReference] = useState(baseLocation);
+  const [pin, setPin] = useState<AppGeolocation | null>(null);
+  const [lastReference, setLastReference] = useState<AppGeolocation | null>(
+    null
+  );
 
   const [address, setAddress] = useState<Address | null>();
   const [number, setNumber] = useState<number | null>(null);
@@ -73,8 +76,8 @@ function HouseForm(props: Props) {
   const handleChangeObs = (e: any) => setObs(e.target.value);
   const handlePinMap = async (geometry: any) => {
     const coords = {
-      lat: geometry.i.lat(),
-      lng: geometry.i.lng(),
+      lat: geometry.i.lat() as number,
+      lng: geometry.i.lng() as number,
     };
     console.info("coords", coords);
     setPin(coords);
@@ -84,7 +87,6 @@ function HouseForm(props: Props) {
   };
 
   const clearState = () => {
-    setLastReference(pin || baseLocation);
     setPin(null);
     setNumber(null);
     setAddress(null);
@@ -114,6 +116,7 @@ function HouseForm(props: Props) {
       }
 
       clearState();
+      setLastReference(pin || baseLocation);
       toast({
         title: "A semente foi lançada",
         description: "continue semeando",
@@ -149,7 +152,7 @@ function HouseForm(props: Props) {
                 height: pin ? "100%" : "70vh",
               }}
               zoom={16}
-              center={pin || lastReference}
+              center={pin || lastReference || baseLocation}
             >
               <Polygon options={areaOptions} paths={paths} />
               {pin && (
@@ -175,6 +178,13 @@ function HouseForm(props: Props) {
                 position={baseLocation}
                 title="Base: Ibpaz Santa Isabel"
               />
+              {lastReference && (
+                <Marker
+                  label="Último envio"
+                  position={lastReference}
+                  icon={mailBox}
+                />
+              )}
               <Data
                 onAddFeature={console.log}
                 options={{
