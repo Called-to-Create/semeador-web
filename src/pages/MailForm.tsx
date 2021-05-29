@@ -19,7 +19,7 @@ import {
   Polygon,
   useJsApiLoader,
 } from "@react-google-maps/api";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import baseIcon from "../assets/lighthouse.png";
 import mailBox from "../assets/mailbox.png";
 import { getReverseGeocoding } from "../services/geoCoding";
@@ -44,11 +44,18 @@ const areaOptions = {
 };
 
 const paths = [
-  { lat: -15.604147729365112, lng: -56.13393439339357 },
-  { lat: -15.604003061652685, lng: -56.13267643736558 },
-  { lat: -15.598118099310096, lng: -56.13521380709367 },
-  { lat: -15.598602606835296, lng: -56.13634180319821 },
+  { lat: -15.599080213363983, lng: -56.13742594034749 },
+  { lat: -15.598608790512658, lng: -56.13634163092526 },
+  { lat: -15.604146278351617, lng: -56.13393166612538 },
+  { lat: -15.604278603250824, lng: -56.13519539649837 },
 ];
+
+// const oldPaths = [
+//   { lat: -15.60425200003934, lng: -56.13528081661273 },
+//   { lat: -15.604003061652685, lng: -56.13267643736558 },
+//   { lat: -15.598118099310096, lng: -56.13521380709367 },
+//   { lat: -15.599067685900074, lng: -56.137403815786605 },
+// ];
 
 type Props = {
   user: string;
@@ -58,14 +65,14 @@ type Props = {
 // TODO: componentizar
 function HouseForm(props: Props) {
   const [pin, setPin] = useState<AppGeolocation | null>(null);
-  const [lastReference, setLastReference] = useState<AppGeolocation | null>(
-    null
-  );
+  const [lastReference, setLastReference] =
+    useState<AppGeolocation | null>(null);
 
   const [address, setAddress] = useState<Address | null>();
   const [number, setNumber] = useState<number | null>(null);
   const [obs, setObs] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const inputNumberRef = useRef<HTMLInputElement>(null);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY || "",
@@ -75,17 +82,18 @@ function HouseForm(props: Props) {
   const handleChangeNumber = (e: any) => setNumber(e.target.value);
   const handleChangeObs = (e: any) => setObs(e.target.value);
   const handlePinMap = async (geometry: any) => {
+    console.log(`geometry`, geometry);
     const coords = {
-      lat: geometry.i.lat() as number,
-      lng: geometry.i.lng() as number,
+      lat: geometry?.g.lat() as number,
+      lng: geometry?.g.lng() as number,
     };
-    console.info("coords", coords);
+    console.info("coords", JSON.stringify(coords));
     setPin(coords);
     const address = await getReverseGeocoding(coords);
     console.info("address", address);
     setAddress(address);
+    inputNumberRef?.current?.focus();
   };
-
   const clearState = () => {
     setPin(null);
     setNumber(null);
@@ -154,6 +162,14 @@ function HouseForm(props: Props) {
               zoom={16}
               center={pin || lastReference || baseLocation}
             >
+              {/* <Polygon
+                options={{
+                  ...areaOptions,
+                  fillColor: "darkblue",
+                  strokeColor: "darkblue",
+                }}
+                paths={oldPaths}
+              /> */}
               <Polygon options={areaOptions} paths={paths} />
               {pin && (
                 <Marker
@@ -229,6 +245,7 @@ function HouseForm(props: Props) {
                   <FormLabel fontWeight="bold">Número</FormLabel>
                   <NumberInput variant="filled">
                     <NumberInputField
+                      ref={inputNumberRef}
                       value={number || 0}
                       placeholder="Nº da casa"
                       onChange={handleChangeNumber}
